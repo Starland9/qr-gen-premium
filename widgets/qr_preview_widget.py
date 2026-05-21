@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from domain.models import QRType
-from services.export_service import ExportService
+from ui.utils import copy_to_clipboard
 
 
 class QRPreviewWidget(QWidget):
@@ -23,7 +23,6 @@ class QRPreviewWidget(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self._export_service = ExportService()
         self._current_image: QImage | None = None
         self._setup_ui()
 
@@ -115,4 +114,4 @@ class QRPreviewWidget(QWidget):
 
     def _copy_to_clipboard(self) -> None:
         if self._current_image is not None:
-            self._export_service.copy_to_clipboard(self._current_image)
+            copy_to_clipboard(self._current_image)

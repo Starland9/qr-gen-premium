@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QRect, QTimer, Qt
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QRect, Qt, QTimer
 from PySide6.QtWidgets import QLabel, QWidget
 
 _LEVEL_STYLES = {

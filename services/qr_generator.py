@@ -1,11 +1,14 @@
-"""QR code generation service."""
+"""QR code generation service.
+
+Returns PIL Images — no Qt dependency.  The UI layer is responsible for
+converting PIL Images to QImage when needed.
+"""
 
 from __future__ import annotations
 
 import qrcode
 import qrcode.constants
 from PIL import Image
-from PySide6.QtGui import QImage
 
 from core.exceptions import GenerationError
 from domain.models import ErrorCorrectionLevel, QRConfig, QRType
@@ -21,23 +24,22 @@ _EC_MAP = {
 class QRGeneratorService:
     """Service for generating QR code images."""
 
-    def generate(self, config: QRConfig) -> QImage:
-        """Generate QR code image from config, returns QImage."""
+    def generate(self, config: QRConfig) -> Image.Image:
+        """Generate QR code from config, returns a PIL RGBA Image."""
         try:
             data = self._build_qr_data(config)
-            pil_image = self._make_pil_image(config, data)
-            return self._pil_to_qimage(pil_image)
+            return self._make_pil_image(config, data)
         except Exception as exc:
             raise GenerationError(f"Failed to generate QR code: {exc}") from exc
 
-    def generate_with_logo(self, config: QRConfig) -> QImage:
-        """Generate QR code with center logo overlay."""
+    def generate_with_logo(self, config: QRConfig) -> Image.Image:
+        """Generate QR code with centre logo overlay, returns a PIL RGBA Image."""
         try:
             data = self._build_qr_data(config)
             pil_image = self._make_pil_image(config, data)
             if config.logo_path:
                 pil_image = self._overlay_logo(pil_image, config.logo_path)
-            return self._pil_to_qimage(pil_image)
+            return pil_image
         except Exception as exc:
             raise GenerationError(f"Failed to generate QR code with logo: {exc}") from exc
 
@@ -101,9 +103,3 @@ class QRGeneratorService:
         result = base.copy()
         result.paste(logo, pos, logo)
         return result
-
-    def _pil_to_qimage(self, pil_image: Image.Image) -> QImage:
-        pil_image = pil_image.convert("RGBA")
-        raw = pil_image.tobytes("raw", "RGBA")
-        qimage = QImage(raw, pil_image.width, pil_image.height, QImage.Format.Format_RGBA8888)
-        return qimage.copy()  # detach from raw buffer before it is GC'd

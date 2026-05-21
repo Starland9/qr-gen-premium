@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+import base64
+
+from PySide6.QtCore import QBuffer, QIODevice, Qt
 from PySide6.QtWidgets import (
-    QHBoxLayout,
     QLabel,
     QMainWindow,
     QScrollArea,
@@ -19,20 +20,20 @@ from domain.models import ExportConfig, ExportFormat, HistoryEntry, QRConfig, QR
 from services.export_service import ExportService
 from services.history_service import HistoryService
 from services.qr_generator import QRGeneratorService
+from ui.utils import pil_to_qimage
 from widgets.customization_panel import CustomizationPanel
 from widgets.export_panel import ExportPanel
+from widgets.forms.email_form import EmailForm
+from widgets.forms.geo_form import GeoForm
+from widgets.forms.phone_form import PhoneForm
+from widgets.forms.sms_form import SMSForm
+from widgets.forms.text_form import TextForm
+from widgets.forms.url_form import URLForm
+from widgets.forms.vcard_form import VCardForm
+from widgets.forms.wifi_form import WiFiForm
 from widgets.notification_widget import NotificationWidget
 from widgets.qr_preview_widget import QRPreviewWidget
 from widgets.type_selector_widget import TypeSelectorWidget
-from widgets.forms.text_form import TextForm
-from widgets.forms.url_form import URLForm
-from widgets.forms.email_form import EmailForm
-from widgets.forms.phone_form import PhoneForm
-from widgets.forms.sms_form import SMSForm
-from widgets.forms.vcard_form import VCardForm
-from widgets.forms.wifi_form import WiFiForm
-from widgets.forms.geo_form import GeoForm
-
 
 _FORM_MAP = {
     QRType.TEXT: TextForm,
@@ -179,40 +180,40 @@ class MainWindow(QMainWindow):
         )
         try:
             if config.logo_path:
-                image = self._generator.generate_with_logo(config)
+                pil_image = self._generator.generate_with_logo(config)
             else:
-                image = self._generator.generate(config)
-            self._preview.update_preview(image)
+                pil_image = self._generator.generate(config)
+            qimage = pil_to_qimage(pil_image)
+            self._preview.update_preview(qimage)
             self._export_panel.set_export_enabled(True)
             self._last_config = config
-            self._last_image = image
+            self._last_pil_image = pil_image
+            self._last_qimage = qimage
         except Exception as exc:
             self._preview.clear_preview()
             self._export_panel.set_export_enabled(False)
             self.statusBar().showMessage(f"  Generation error: {exc}")
 
     def _on_export(self, export_config: ExportConfig) -> None:
-        if not hasattr(self, "_last_image") or not hasattr(self, "_last_config"):
+        if not hasattr(self, "_last_pil_image") or not hasattr(self, "_last_config"):
             self._show_notification("Generate a QR code first.", "error")
             return
         try:
             if export_config.format == ExportFormat.SVG:
                 path = self._exporter.export_svg(self._last_config, export_config)
             else:
-                path = self._exporter.export(self._last_image, export_config)
+                path = self._exporter.export(self._last_pil_image, export_config)
             self._show_notification(f"Saved to {path.name}", "success")
             self._save_history()
         except Exception as exc:
             self._show_notification(f"Export failed: {exc}", "error")
 
     def _save_history(self) -> None:
-        if not hasattr(self, "_last_config") or not hasattr(self, "_last_image"):
+        if not hasattr(self, "_last_config") or not hasattr(self, "_last_qimage"):
             return
-        import base64
-        from PySide6.QtCore import QBuffer, QIODevice
         buf = QBuffer()
         buf.open(QIODevice.OpenMode.WriteOnly)
-        self._last_image.save(buf, "PNG")
+        self._last_qimage.save(buf, "PNG")
         thumb_b64 = base64.b64encode(buf.data().data()).decode()
         entry = HistoryEntry(
             qr_type=self._current_type,

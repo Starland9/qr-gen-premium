@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from PIL import Image
 
 from domain.models import ErrorCorrectionLevel, QRConfig, QRType
 from services.qr_generator import QRGeneratorService
@@ -48,24 +49,24 @@ class TestBuildQrData:
 
 
 class TestGenerate:
-    def test_returns_qimage(self, qapp, generator: QRGeneratorService) -> None:
-        from PySide6.QtGui import QImage
+    """Tests for generate() — returns a PIL Image, no Qt dependency."""
+
+    def test_returns_pil_image(self, generator: QRGeneratorService) -> None:
         config = QRConfig(qr_type=QRType.TEXT, data="Test QR")
         image = generator.generate(config)
-        assert isinstance(image, QImage)
-        assert not image.isNull()
+        assert isinstance(image, Image.Image)
 
-    def test_size_respected(self, qapp, generator: QRGeneratorService) -> None:
+    def test_size_respected(self, generator: QRGeneratorService) -> None:
         config = QRConfig(qr_type=QRType.TEXT, data="Size test", size=200)
         image = generator.generate(config)
-        assert image.width() == 200
-        assert image.height() == 200
+        assert image.width == 200
+        assert image.height == 200
 
-    def test_error_correction_h(self, qapp, generator: QRGeneratorService) -> None:
+    def test_error_correction_h(self, generator: QRGeneratorService) -> None:
         config = QRConfig(
             qr_type=QRType.URL,
             data="https://example.com",
             error_correction=ErrorCorrectionLevel.H,
         )
         image = generator.generate(config)
-        assert not image.isNull()
+        assert image.width > 0

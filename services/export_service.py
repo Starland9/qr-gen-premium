@@ -1,4 +1,9 @@
-"""Export service for QR code images."""
+"""Export service for QR code images.
+
+This service operates on PIL Images so it has no Qt dependency.  Clipboard
+copy is the only operation that requires a QImage and must be called from
+the UI layer after conversion.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +11,11 @@ from pathlib import Path
 
 import qrcode
 import qrcode.image.svg
-from PySide6.QtGui import QImage, QGuiApplication
+from PIL import Image
 
 from core.exceptions import ExportError
 from domain.models import ExportConfig, ExportFormat, QRConfig
-from services.qr_generator import QRGeneratorService, _EC_MAP
+from services.qr_generator import _EC_MAP, QRGeneratorService
 
 
 class ExportService:
@@ -19,23 +24,20 @@ class ExportService:
     def __init__(self) -> None:
         self._generator = QRGeneratorService()
 
-    def export(self, image: QImage, config: ExportConfig) -> Path:
-        """Export QR code image to file, returns saved path."""
+    def export(self, pil_image: Image.Image, config: ExportConfig) -> Path:
+        """Export a PIL Image to file and return the saved path."""
         try:
+            if config.format == ExportFormat.SVG:
+                raise ExportError("Use export_svg() for SVG format.")
             output_dir = Path(config.output_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
             ext = config.format.value.lower()
             path = output_dir / f"{config.filename}.{ext}"
-            if config.format == ExportFormat.SVG:
-                raise ExportError("Use export_svg() for SVG format.")
             if config.format == ExportFormat.JPG:
-                save_path = str(path)
-                if not image.save(save_path, "JPEG", int(95 * config.scale)):
-                    raise ExportError(f"Failed to save JPG to {path}")
+                rgb_image = pil_image.convert("RGB")
+                rgb_image.save(str(path), "JPEG", quality=95)
             else:
-                save_path = str(path)
-                if not image.save(save_path, "PNG"):
-                    raise ExportError(f"Failed to save PNG to {path}")
+                pil_image.convert("RGBA").save(str(path), "PNG")
             return path
         except ExportError:
             raise
@@ -62,12 +64,3 @@ class ExportService:
             return path
         except Exception as exc:
             raise ExportError(f"SVG export failed: {exc}") from exc
-
-    def copy_to_clipboard(self, image: QImage) -> None:
-        """Copy QR image to system clipboard."""
-        try:
-            clipboard = QGuiApplication.clipboard()
-            if clipboard is not None:
-                clipboard.setImage(image)
-        except Exception as exc:
-            raise ExportError(f"Clipboard copy failed: {exc}") from exc

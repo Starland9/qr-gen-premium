@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QLineEdit
 
-from domain.validators import WiFiValidator, ValidationResult
+from domain.validators import ValidationResult, WiFiValidator
 from widgets.forms.base_form import BaseForm
 
 

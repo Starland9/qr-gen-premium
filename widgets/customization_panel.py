@@ -5,7 +5,6 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QCheckBox,
     QColorDialog,
     QComboBox,
     QGroupBox,
@@ -19,7 +18,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core.config import DEFAULT_BACK_COLOR, DEFAULT_BORDER, DEFAULT_BOX_SIZE, DEFAULT_FILL_COLOR, DEFAULT_QR_SIZE
+from core.config import (
+    DEFAULT_BACK_COLOR,
+    DEFAULT_BORDER,
+    DEFAULT_FILL_COLOR,
+    DEFAULT_QR_SIZE,
+)
 from domain.models import ErrorCorrectionLevel
 
 

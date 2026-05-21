@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QLabel, QLineEdit
 
-from domain.validators import VCardValidator, ValidationResult
+from domain.validators import ValidationResult, VCardValidator
 from widgets.forms.base_form import BaseForm
 
 
