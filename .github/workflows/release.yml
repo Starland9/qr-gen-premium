@@ -18,7 +18,7 @@ jobs:
             artifact_name: qr-gen-premium-macos
     runs-on: ${{ matrix.os }}
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
