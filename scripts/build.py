@@ -34,23 +34,35 @@ def get_icon_flag() -> list[str]:
 def build() -> int:
     """Run PyInstaller with platform-appropriate settings."""
     system = platform.system()
+    machine = platform.machine().lower()
     cmd = [
         sys.executable,
         "-m",
         "PyInstaller",
         str(ENTRY),
-        "--name", APP_NAME.replace(" ", "-"),
-        "--onefile",
-        "--windowed",
-        "--distpath", str(DIST),
-        "--workpath", str(ROOT / "build"),
-        "--specpath", str(ROOT),
-        "--add-data", f"{ROOT / 'assets'}{os.pathsep}assets",
+        "--name",
+        APP_NAME.replace(" ", "-"),
+        "--distpath",
+        str(DIST),
+        "--workpath",
+        str(ROOT / "build"),
+        "--specpath",
+        str(ROOT),
+        "--add-data",
+        f"{ROOT / 'assets'}{os.pathsep}assets",
         "--noconfirm",
     ]
     cmd.extend(get_icon_flag())
     if system == "Darwin":
-        cmd += ["--target-architecture", "universal2"]
+        cmd += ["--windowed", "--onedir"]
+        if machine in ("arm64", "aarch64"):
+            cmd += ["--target-architecture", "arm64"]
+        elif machine in ("x86_64", "amd64"):
+            cmd += ["--target-architecture", "x86_64"]
+    else:
+        cmd += ["--onefile"]
+        if system != "Linux":
+            cmd += ["--windowed"]
     print(f"Building for {system}...")
     print("Command:", " ".join(cmd))
     result = subprocess.run(cmd, cwd=ROOT)
