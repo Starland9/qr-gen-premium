@@ -77,6 +77,8 @@ class QRGeneratorService:
                 lat = parts[0] if parts else "0"
                 lon = parts[1] if len(parts) > 1 else "0"
                 return f"geo:{lat},{lon}"
+            case QRType.IMAGE:
+                return d  # data is a URL produced by image share service
             case _:
                 return d
 

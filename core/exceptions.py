@@ -28,3 +28,7 @@ class HistoryError(QRGenError):
 
 class DecodeError(QRGenError):
     """Raised when QR code decoding from an image fails."""
+
+
+class ImageShareError(QRGenError):
+    """Raised when image sharing (LAN server or online upload) fails."""

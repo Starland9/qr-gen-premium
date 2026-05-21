@@ -17,7 +17,7 @@ from domain.models import (
 class TestQRType:
     def test_all_types_present(self) -> None:
         names = {t.name for t in QRType}
-        assert names == {"TEXT", "URL", "EMAIL", "PHONE", "SMS", "VCARD", "WIFI", "GEO"}
+        assert names == {"TEXT", "URL", "EMAIL", "PHONE", "SMS", "VCARD", "WIFI", "GEO", "IMAGE"}
 
     def test_values_are_strings(self) -> None:
         for t in QRType:

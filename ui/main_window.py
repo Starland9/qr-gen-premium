@@ -27,6 +27,7 @@ from widgets.customization_panel import CustomizationPanel
 from widgets.export_panel import ExportPanel
 from widgets.forms.email_form import EmailForm
 from widgets.forms.geo_form import GeoForm
+from widgets.forms.image_form import ImageForm
 from widgets.forms.phone_form import PhoneForm
 from widgets.forms.sms_form import SMSForm
 from widgets.forms.text_form import TextForm
@@ -47,6 +48,7 @@ _FORM_MAP = {
     QRType.VCARD: VCardForm,
     QRType.WIFI: WiFiForm,
     QRType.GEO: GeoForm,
+    QRType.IMAGE: ImageForm,
 }
 
 # Indices for the main mode stack
@@ -291,3 +293,10 @@ class MainWindow(QMainWindow):
             parent_w = self.centralWidget().width() if self.centralWidget() else self.width()
             x = parent_w - self._notification.width() - 16
             self._notification.move(x, self._notification.y())
+
+    def closeEvent(self, event) -> None:  # type: ignore[override]
+        """Stop the LAN image server (if running) before the app exits."""
+        image_form = self._forms.get(QRType.IMAGE)
+        if image_form is not None:
+            image_form._stop_server_silently()  # type: ignore[union-attr]
+        super().closeEvent(event)

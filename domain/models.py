@@ -19,6 +19,7 @@ class QRType(Enum):
     VCARD = "vCard"
     WIFI = "WiFi"
     GEO = "Geo"
+    IMAGE = "Image"
 
 
 class ErrorCorrectionLevel(Enum):

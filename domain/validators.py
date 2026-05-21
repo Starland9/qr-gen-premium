@@ -144,3 +144,29 @@ class GeoValidator:
         except (ValueError, TypeError):
             errors["longitude"] = "Longitude must be a valid number."
         return ValidationResult(is_valid=not errors, errors=errors)
+
+
+_SUPPORTED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp", ".gif"}
+
+
+class ImageValidator:
+    """Validates image QR data (an image file path must be selected)."""
+
+    def validate(self, data: dict[str, str]) -> ValidationResult:
+        errors: dict[str, str] = {}
+        path = data.get("image_path", "").strip()
+        if not path:
+            errors["image_path"] = "No image selected."
+            return ValidationResult(is_valid=False, errors=errors)
+
+        from pathlib import Path  # local import to keep module lightweight
+
+        p = Path(path)
+        if not p.exists():
+            errors["image_path"] = "File not found."
+        elif p.suffix.lower() not in _SUPPORTED_IMAGE_EXTENSIONS:
+            errors["image_path"] = (
+                f"Unsupported format '{p.suffix}'. "
+                f"Accepted: {', '.join(sorted(_SUPPORTED_IMAGE_EXTENSIONS))}."
+            )
+        return ValidationResult(is_valid=not errors, errors=errors)
