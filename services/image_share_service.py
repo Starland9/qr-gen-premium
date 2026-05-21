@@ -210,15 +210,15 @@ class LocalImageServerService:
 class ImageUploaderService:
     """Upload an image to a free anonymous hosting service and return its URL.
 
-    The default endpoint is `0x0.st <https://0x0.st>`_ which accepts HTTP
-    multipart POST uploads and returns a plain-text URL.  The upload is
+    The default endpoint is `catbox.moe <https://catbox.moe>`_ which accepts
+    HTTP multipart POST uploads and returns a plain-text URL.  The upload is
     permanent and publicly accessible — only use for images the user is
     comfortable sharing publicly.
 
     No third-party libraries are required (uses Python's stdlib ``urllib``).
     """
 
-    _ENDPOINT = "https://0x0.st"
+    _ENDPOINT = "https://catbox.moe/user/api.php"
 
     def upload(self, image_path: str | Path) -> str:
         """Upload *image_path* and return the hosted URL.
@@ -255,12 +255,21 @@ class ImageUploaderService:
         boundary = "----QRGenBoundary7MA4YWxkTrZu0gW"
         data = path.read_bytes()
 
+        # catbox.moe requires a reqtype=fileupload field before the file field
         body = (
-            f"--{boundary}\r\n"
-            f'Content-Disposition: form-data; name="file"; filename="{path.name}"\r\n'
-            f"Content-Type: {content_type}\r\n"
-            f"\r\n"
-        ).encode() + data + f"\r\n--{boundary}--\r\n".encode()
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="reqtype"\r\n'
+                f"\r\n"
+                f"fileupload\r\n"
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="fileToUpload"; filename="{path.name}"\r\n'
+                f"Content-Type: {content_type}\r\n"
+                f"\r\n"
+            ).encode()
+            + data
+            + f"\r\n--{boundary}--\r\n".encode()
+        )
 
         req = urllib.request.Request(
             self._ENDPOINT,
@@ -272,10 +281,6 @@ class ImageUploaderService:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return resp.read().decode("utf-8").strip()
         except urllib.error.HTTPError as exc:
-            raise ImageShareError(
-                f"Upload rejected (HTTP {exc.code}): {exc.reason}"
-            ) from exc
+            raise ImageShareError(f"Upload rejected (HTTP {exc.code}): {exc.reason}") from exc
         except urllib.error.URLError as exc:
-            raise ImageShareError(
-                f"Network error during upload: {exc.reason}"
-            ) from exc
+            raise ImageShareError(f"Network error during upload: {exc.reason}") from exc
