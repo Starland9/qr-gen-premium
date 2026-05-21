@@ -26,3 +26,7 @@ class TextForm(BaseForm):
 
     def get_qr_data(self) -> str:
         return self._text_edit.toPlainText()
+
+    def set_text(self, text: str) -> None:
+        """Programmatically set the text content."""
+        self._text_edit.setPlainText(text)

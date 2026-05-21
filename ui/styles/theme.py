@@ -453,6 +453,85 @@ QToolTip {
     padding: 4px 8px;
     font-size: 12px;
 }
+
+/* === Mode Toggle Bar === */
+QWidget#modeToggleBar {
+    background-color: #0A0C13;
+    border-bottom: 1px solid #1E2030;
+}
+QPushButton#modeButton {
+    background-color: transparent;
+    color: #8B8FA8;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 30px;
+}
+QPushButton#modeButton:hover {
+    background-color: #22263A;
+    color: #F0F0F5;
+}
+QPushButton#modeButton[active="true"] {
+    background-color: #6C63FF;
+    color: #FFFFFF;
+    border-color: #6C63FF;
+}
+QPushButton#modeButton[active="true"]:hover {
+    background-color: #7C74FF;
+}
+
+/* === Secondary Button === */
+QPushButton#secondaryButton {
+    background-color: transparent;
+    color: #8B8FA8;
+    border: 1px solid #2A2D3E;
+    border-radius: 8px;
+    padding: 6px 18px;
+    font-size: 13px;
+    min-height: 32px;
+}
+QPushButton#secondaryButton:hover {
+    background-color: #22263A;
+    color: #F0F0F5;
+    border-color: #6C63FF;
+}
+
+/* === Drop Zone === */
+QFrame#dropZone {
+    background-color: #141620;
+    border: 2px dashed #2A2D3E;
+    border-radius: 12px;
+}
+QFrame#dropZone:hover {
+    border-color: #6C63FF;
+    background-color: #1A1D2E;
+}
+QFrame#dropZone[dragActive="true"] {
+    border-color: #6C63FF;
+    background-color: #1E2040;
+}
+
+/* === Scan Panel Labels === */
+QLabel#sectionTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #F0F0F5;
+}
+QLabel#subtitle {
+    font-size: 12px;
+    color: #8B8FA8;
+}
+QLabel#decodedText {
+    background-color: #0F1117;
+    color: #F0F0F5;
+    border: 1px solid #2A2D3E;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 12px;
+    font-family: "Consolas", "Fira Mono", monospace;
+}
 """
 
 

@@ -24,3 +24,7 @@ class ExportError(QRGenError):
 
 class HistoryError(QRGenError):
     """Raised when history operations fail."""
+
+
+class DecodeError(QRGenError):
+    """Raised when QR code decoding from an image fails."""

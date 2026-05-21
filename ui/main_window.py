@@ -6,8 +6,10 @@ import base64
 
 from PySide6.QtCore import QBuffer, QIODevice, Qt
 from PySide6.QtWidgets import (
+    QHBoxLayout,
     QLabel,
     QMainWindow,
+    QPushButton,
     QScrollArea,
     QSplitter,
     QStackedWidget,
@@ -33,6 +35,7 @@ from widgets.forms.vcard_form import VCardForm
 from widgets.forms.wifi_form import WiFiForm
 from widgets.notification_widget import NotificationWidget
 from widgets.qr_preview_widget import QRPreviewWidget
+from widgets.scan_panel import ScanPanel
 from widgets.type_selector_widget import TypeSelectorWidget
 
 _FORM_MAP = {
@@ -45,6 +48,10 @@ _FORM_MAP = {
     QRType.WIFI: WiFiForm,
     QRType.GEO: GeoForm,
 }
+
+# Indices for the main mode stack
+_MODE_GENERATE = 0
+_MODE_SCAN = 1
 
 
 class MainWindow(QMainWindow):
@@ -75,26 +82,56 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # Splitter
+        # ── Mode toggle bar ──────────────────────────────────────────────
+        toggle_bar = QWidget()
+        toggle_bar.setObjectName("modeToggleBar")
+        toggle_bar.setFixedHeight(48)
+        toggle_layout = QHBoxLayout(toggle_bar)
+        toggle_layout.setContentsMargins(16, 6, 16, 6)
+        toggle_layout.setSpacing(8)
+
+        title = QLabel(APP_NAME)
+        title.setObjectName("heading")
+        toggle_layout.addWidget(title)
+        toggle_layout.addStretch()
+
+        self._btn_generate = QPushButton("Generate")
+        self._btn_generate.setObjectName("modeButton")
+        self._btn_generate.setProperty("active", True)
+        self._btn_generate.clicked.connect(lambda: self._set_mode(_MODE_GENERATE))
+
+        self._btn_scan = QPushButton("Scan from Image")
+        self._btn_scan.setObjectName("modeButton")
+        self._btn_scan.setProperty("active", False)
+        self._btn_scan.clicked.connect(lambda: self._set_mode(_MODE_SCAN))
+
+        toggle_layout.addWidget(self._btn_generate)
+        toggle_layout.addWidget(self._btn_scan)
+        root_layout.addWidget(toggle_bar)
+
+        # ── Mode stack (Generate / Scan) ─────────────────────────────────
+        self._mode_stack = QStackedWidget()
+        root_layout.addWidget(self._mode_stack, stretch=1)
+
+        # --- Generate mode ---
+        generate_page = QWidget()
+        gen_layout = QVBoxLayout(generate_page)
+        gen_layout.setContentsMargins(0, 0, 0, 0)
+        gen_layout.setSpacing(0)
+        self._mode_stack.addWidget(generate_page)  # index 0
+
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setHandleWidth(1)
 
-        # --- Left panel ---
+        # Left panel (editor)
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
-        left_layout.setContentsMargins(16, 16, 12, 16)
+        left_layout.setContentsMargins(16, 12, 12, 16)
         left_layout.setSpacing(12)
 
-        # Title
-        title = QLabel(APP_NAME)
-        title.setObjectName("heading")
-        left_layout.addWidget(title)
-
-        # Type selector
         self._type_selector = TypeSelectorWidget()
         left_layout.addWidget(self._type_selector)
 
-        # Form stack
         self._form_stack = QStackedWidget()
         for qr_type, FormClass in _FORM_MAP.items():
             form = FormClass()
@@ -108,17 +145,16 @@ class MainWindow(QMainWindow):
         form_scroll.setFrameShape(form_scroll.frameShape().NoFrame)
         left_layout.addWidget(form_scroll, stretch=1)
 
-        # Customization panel
         self._customization = CustomizationPanel()
         left_layout.addWidget(self._customization)
 
         splitter.addWidget(left_widget)
         splitter.setStretchFactor(0, 3)
 
-        # --- Right panel ---
+        # Right panel (preview + export)
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(12, 16, 16, 16)
+        right_layout.setContentsMargins(12, 12, 16, 16)
         right_layout.setSpacing(12)
 
         self._preview = QRPreviewWidget()
@@ -132,15 +168,39 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(1, 2)
         splitter.setSizes([620, 480])
 
-        root_layout.addWidget(splitter)
+        gen_layout.addWidget(splitter)
 
-        # Notification overlay
+        # --- Scan mode ---
+        self._scan_panel = ScanPanel()
+        self._scan_panel.scan_text_selected.connect(self._on_scan_text_selected)
+        self._mode_stack.addWidget(self._scan_panel)  # index 1
+
+        # Notification overlay (always on top)
         self._notification = NotificationWidget(central)
 
     def _connect_signals(self) -> None:
         self._type_selector.type_changed.connect(self._on_type_changed)
         self._customization.customization_changed.connect(self._on_form_changed)
         self._export_panel.export_requested.connect(self._on_export)
+
+    def _set_mode(self, mode: int) -> None:
+        """Switch between Generate and Scan modes."""
+        self._mode_stack.setCurrentIndex(mode)
+        self._btn_generate.setProperty("active", mode == _MODE_GENERATE)
+        self._btn_scan.setProperty("active", mode == _MODE_SCAN)
+        for btn in (self._btn_generate, self._btn_scan):
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
+
+    def _on_scan_text_selected(self, text: str) -> None:
+        """Switch to Generate mode and pre-fill the Text form with decoded content."""
+        self._set_mode(_MODE_GENERATE)
+        # Switch form to TEXT type and populate it
+        self._type_selector.select(QRType.TEXT)
+        text_form = self._forms.get(QRType.TEXT)
+        if text_form is not None:
+            text_form.set_text(text)  # type: ignore[union-attr]
+        self._show_notification("Decoded text loaded into generator.", "success")
 
     def _on_type_changed(self, qr_type: QRType) -> None:
         self._current_type = qr_type

@@ -57,6 +57,10 @@ class TypeSelectorWidget(QWidget):
             btn.style().polish(btn)
         self.type_changed.emit(qr_type)
 
+    def select(self, qr_type: QRType) -> None:
+        """Programmatically select a QR type (same as clicking the button)."""
+        self._select(qr_type)
+
     def current_type(self) -> QRType:
         """Return the currently selected QR type."""
         return self._current

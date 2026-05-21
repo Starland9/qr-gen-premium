@@ -64,6 +64,15 @@ class ExportConfig:
 
 
 @dataclass
+class DecodeResult:
+    """Result of decoding a QR code from an image."""
+
+    text: str
+    format: str  # e.g. "QRCode", "DataMatrix"
+    source_path: str = ""
+
+
+@dataclass
 class HistoryEntry:
     """A single history entry for a generated QR code."""
 
