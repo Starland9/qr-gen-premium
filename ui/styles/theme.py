@@ -556,9 +556,7 @@ class ThemeManager:
         palette.setColor(QPalette.ColorRole.Link, QColor("#6C63FF"))
         palette.setColor(QPalette.ColorRole.Highlight, QColor("#6C63FF"))
         palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#FFFFFF"))
-        palette.setColor(
-            QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor("#3C3F52")
-        )
+        palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor("#3C3F52"))
         palette.setColor(
             QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor("#3C3F52")
         )
