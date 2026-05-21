@@ -1,0 +1,13 @@
+"""Application-wide configuration constants."""
+
+APP_NAME = "QR Gen Premium"
+APP_VERSION = "1.0.0"
+WINDOW_MIN_WIDTH = 900
+WINDOW_MIN_HEIGHT = 620
+HISTORY_MAX_ENTRIES = 20
+HISTORY_FILE = "~/.qr_gen_premium_history.json"
+DEFAULT_QR_SIZE = 300
+DEFAULT_BOX_SIZE = 10
+DEFAULT_BORDER = 4
+DEFAULT_FILL_COLOR = "#000000"
+DEFAULT_BACK_COLOR = "#FFFFFF"
